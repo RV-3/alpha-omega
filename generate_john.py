@@ -2,7 +2,6 @@ import os
 import logging
 import time
 import argparse
-import requests
 import openai
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
@@ -22,24 +21,11 @@ PROMPT_TEMPLATE = (
 )
 
 
-def fetch_verse_text(ref: str) -> str:
-    """Retrieve verse text from bible-api.com."""
-    url = f"https://bible-api.com/{ref.replace(' ', '%20')}"
-    try:
-        r = requests.get(url, timeout=10)
-        r.raise_for_status()
-    except requests.RequestException as e:
-        logging.error("Failed to fetch verse %s: %s", ref, e)
-        raise
-    data = r.json()
-    return data.get("text", "").strip()
-
-
-def generate_analysis(verse_ref: str, verse_text: str) -> str:
+def generate_analysis(verse_ref: str) -> str:
     prompt = PROMPT_TEMPLATE.format(verse_ref=verse_ref)
     messages = [
         {"role": "system", "content": "You are a scholarly assistant that creates word study sheets."},
-        {"role": "user", "content": prompt + "\nVerse: " + verse_text},
+        {"role": "user", "content": prompt},
     ]
     error = None
     for attempt in range(2):
@@ -68,19 +54,12 @@ def render_pdf(text: str, output_path: str):
     c.save()
 
 
-def generate_book(book: str, chapters: int):
-    for ch in range(1, chapters + 1):
-        verse_num = 1
-        while True:
-            verse_ref = f"{book} {ch}:{verse_num}"
-            try:
-                verse_text = fetch_verse_text(verse_ref)
-            except requests.HTTPError:
-                break
-            analysis = generate_analysis(verse_ref, verse_text)
-            pdf_name = f"{verse_ref.replace(' ', '_').replace(':', '-')}.pdf"
-            render_pdf(analysis, pdf_name)
-            verse_num += 1
+def generate_range(book: str, chapter: int, start: int, end: int):
+    for verse_num in range(start, end + 1):
+        verse_ref = f"{book} {chapter}:{verse_num}"
+        analysis = generate_analysis(verse_ref)
+        pdf_name = f"{verse_ref.replace(' ', '_').replace(':', '-')}.pdf"
+        render_pdf(analysis, pdf_name)
 
 
 if __name__ == "__main__":
@@ -93,11 +72,23 @@ if __name__ == "__main__":
         help="Name of the book to process (default: john)",
     )
     parser.add_argument(
-        "--chapters",
+        "--chapter",
         type=int,
-        default=21,
-        help="Number of chapters in the book",
+        default=1,
+        help="Chapter number to process",
+    )
+    parser.add_argument(
+        "--start",
+        type=int,
+        default=1,
+        help="Starting verse number",
+    )
+    parser.add_argument(
+        "--end",
+        type=int,
+        default=1,
+        help="Ending verse number",
     )
     args = parser.parse_args()
 
-    generate_book(args.book, args.chapters)
+    generate_range(args.book, args.chapter, args.start, args.end)
