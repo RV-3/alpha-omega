@@ -34,7 +34,9 @@ set. Optionally define `OPENAI_MODEL` if you want to use a different model.
 Run the script with Python:
 
 ```bash
-python generate_john.py
+python generate_john.py --book john --chapters 21
 ```
 
-The script will create one PDF per verse in the current directory.
+The `--book` and `--chapters` options are optional; they default to `john` and
+`21` respectively. The script will create one PDF per verse in the specified
+book and chapter range.
