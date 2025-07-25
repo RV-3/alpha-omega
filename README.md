@@ -1,9 +1,9 @@
 # alpha-omega
 
 This repository contains a simple Python script, `generate_john.py`, that creates
-one-page PDF word-study sheets for every verse in the Gospel of John. It fetches
-the verse text from [bible-api.com](https://bible-api.com), generates an
-analysis with the OpenAI API, and renders the result as a PDF using ReportLab.
+one-page PDF word-study sheets for verses in the Gospel of John. The script
+generates analysis with the OpenAI API and renders the result as a PDF using
+ReportLab.
 
 ## Prerequisites
 
@@ -52,12 +52,12 @@ set. Optionally define `OPENAI_MODEL` if you want to use a different model.
 Run the script with Python:
 
 ```bash
-python3 generate_john.py --book john --chapters 21
+python3 generate_john.py --book john --chapter 1 --start 1 --end 5
 ```
 
-The `--book` and `--chapters` options are optional; they default to `john` and
-`21` respectively. The script will create one PDF per verse in the specified
-book and chapter range.
+The `--book`, `--chapter`, `--start`, and `--end` options default to `john`,
+`1`, `1`, and `1` respectively. The script will create one PDF for each verse in
+the specified range.
 
 Generated PDFs are saved in the directory where you run the command. Open them
 with Finder or from the terminal:
