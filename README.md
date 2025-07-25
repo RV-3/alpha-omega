@@ -19,7 +19,8 @@ analysis with the OpenAI API, and renders the result as a PDF using ReportLab.
 ## Installation
 
 1. Install Python 3.8+ and `pip` if they are not already available.
-2. Install the project dependencies:
+2. Install the project dependencies. The `requirements.txt` file pins the exact
+   versions of OpenAI and ReportLab used by this project:
 
    ```bash
    pip install -r requirements.txt
