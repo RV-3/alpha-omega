@@ -12,13 +12,11 @@ analysis with the OpenAI API, and renders the result as a PDF using ReportLab.
 
 ## Setup
 
-Clone the repository and create a virtual environment:
+Clone the repository and install the dependencies:
 
 ```bash
 git clone <repo-url>
 cd alpha-omega
-python3 -m venv venv
-source venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -28,7 +26,7 @@ pip install -r requirements.txt
 - `OPENAI_MODEL` – *(optional)* the model name to use (defaults to
   `gpt-3.5-turbo`)
 
-On macOS, set these variables in your shell before running the script:
+Set these variables in your shell before running the script:
 
 ```bash
 export OPENAI_API_KEY=your-api-key
