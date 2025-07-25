@@ -1,6 +1,7 @@
 import os
 import logging
 import time
+import argparse
 import requests
 import openai
 from reportlab.lib.pagesizes import letter
@@ -83,4 +84,20 @@ def generate_book(book: str, chapters: int):
 
 
 if __name__ == "__main__":
-    generate_book("john", 21)
+    parser = argparse.ArgumentParser(
+        description="Generate word-study PDFs for a book of the Bible"
+    )
+    parser.add_argument(
+        "--book",
+        default="john",
+        help="Name of the book to process (default: john)",
+    )
+    parser.add_argument(
+        "--chapters",
+        type=int,
+        default=21,
+        help="Number of chapters in the book",
+    )
+    args = parser.parse_args()
+
+    generate_book(args.book, args.chapters)
