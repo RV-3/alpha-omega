@@ -10,11 +10,31 @@ analysis with the OpenAI API, and renders the result as a PDF using ReportLab.
 - Python 3.8 or higher
 - An OpenAI API key
 
+## Setup
+
+Clone the repository and create a virtual environment:
+
+```bash
+git clone <repo-url>
+cd alpha-omega
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
 ## Required Environment Variables
 
 - `OPENAI_API_KEY` – your OpenAI API key used to access the API
 - `OPENAI_MODEL` – *(optional)* the model name to use (defaults to
   `gpt-3.5-turbo`)
+
+On macOS, set these variables in your shell before running the script:
+
+```bash
+export OPENAI_API_KEY=your-api-key
+# Optional: choose a specific model
+export OPENAI_MODEL=gpt-4
+```
 
 ## Installation
 
@@ -34,9 +54,16 @@ set. Optionally define `OPENAI_MODEL` if you want to use a different model.
 Run the script with Python:
 
 ```bash
-python generate_john.py --book john --chapters 21
+python3 generate_john.py --book john --chapters 21
 ```
 
 The `--book` and `--chapters` options are optional; they default to `john` and
 `21` respectively. The script will create one PDF per verse in the specified
 book and chapter range.
+
+Generated PDFs are saved in the directory where you run the command. Open them
+with Finder or from the terminal:
+
+```bash
+open john_1-1.pdf
+```
