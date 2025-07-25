@@ -9,7 +9,7 @@ from reportlab.platypus import Paragraph, Frame
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
 PROMPT_TEMPLATE = (
-    "Crate this PDF \n"
+    "Create this PDF \n"
     "✏️ {verse_ref} — Create ONE-PAGE Word-Study Sheet (8 × 10 in PDF)\n"
     "Ensure it fits elegantly on a single page, with no overflow or table overlap. "
     "Tables must be centered and gracefully styled. Use parchment-toned subtleties, fine serif typography, "
