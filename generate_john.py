@@ -1,4 +1,6 @@
 import os
+import logging
+import time
 import requests
 import openai
 from reportlab.lib.pagesizes import letter
@@ -22,8 +24,12 @@ PROMPT_TEMPLATE = (
 def fetch_verse_text(ref: str) -> str:
     """Retrieve verse text from bible-api.com."""
     url = f"https://bible-api.com/{ref.replace(' ', '%20')}"
-    r = requests.get(url)
-    r.raise_for_status()
+    try:
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+    except requests.RequestException as e:
+        logging.error("Failed to fetch verse %s: %s", ref, e)
+        raise
     data = r.json()
     return data.get("text", "").strip()
 
@@ -34,8 +40,19 @@ def generate_analysis(verse_ref: str, verse_text: str) -> str:
         {"role": "system", "content": "You are a scholarly assistant that creates word study sheets."},
         {"role": "user", "content": prompt + "\nVerse: " + verse_text},
     ]
-    response = openai.ChatCompletion.create(model=OPENAI_MODEL, messages=messages)
-    return response.choices[0].message.content
+    error = None
+    for attempt in range(2):
+        try:
+            response = openai.ChatCompletion.create(model=OPENAI_MODEL, messages=messages)
+            return response.choices[0].message.content
+        except openai.error.OpenAIError as e:
+            error = e
+            logging.error("OpenAI API error on attempt %d for %s: %s", attempt + 1, verse_ref, e)
+            if attempt == 0:
+                time.sleep(1)
+            else:
+                raise
+    raise error
 
 
 def render_pdf(text: str, output_path: str):
