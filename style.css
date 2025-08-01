@@ -1,0 +1,71 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  padding: 1rem;
+}
+
+.context {
+  font-style: italic;
+  margin-bottom: 1rem;
+}
+
+#word-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.2rem;
+}
+
+#word-table th, #word-table td {
+  border: 1px solid #ccc;
+  padding: 0.5rem;
+  text-align: left;
+}
+
+#word-table tr.keyword {
+  background-color: #f9f6d2;
+  cursor: pointer;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.popup {
+  background: white;
+  max-width: 600px;
+  padding: 1rem;
+  overflow-y: auto;
+  max-height: 80vh;
+  position: relative;
+}
+
+#close-btn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  #word-table th, #word-table td {
+    font-size: 1.4rem;
+  }
+}
