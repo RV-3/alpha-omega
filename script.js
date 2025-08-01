@@ -10,12 +10,17 @@ async function loadData() {
   // Map of Greek word -> entry HTML
   const entryMap = {};
   data.entries.forEach(raw => {
+    // Sanitize the HTML snippet to remove potentially dangerous tags
+    const safe = DOMPurify.sanitize(raw, {
+      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br']
+    });
+
     const div = document.createElement('div');
-    div.innerHTML = raw;
+    div.innerHTML = safe;
     const bold = div.querySelector('b');
     if (bold) {
       const key = bold.textContent.trim();
-      entryMap[key] = div.innerHTML; // store the html snippet
+      entryMap[key] = div.innerHTML; // store the sanitized snippet
     }
   });
 

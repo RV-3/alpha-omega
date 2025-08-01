@@ -47,3 +47,11 @@ curl -I http://localhost:8000/index.html
 
 The command should return an HTTP `200` response. Press `Ctrl+C` in the terminal
 running `http.server` when you are done.
+
+## HTML Sanitization
+
+The viewer sanitizes entry snippets using [DOMPurify](https://github.com/cure53/DOMPurify) before inserting them into the page.
+Only basic formatting tags like `<b>` and `<i>` are allowed. If existing JSON
+files rely on stripped tags, remove or rewrite those elements in the JSON so the
+sanitized output matches your expectations. Reload `index.html` locally after
+each change to verify the rendered result.
