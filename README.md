@@ -21,9 +21,11 @@ copied directly into a macOS terminal to view the site locally.
 # Install Python 3 if it's not already available
 brew install python
 
-# Navigate to the project directory (replace the path with the location
-# where you cloned or unpacked this repository)
-cd path/to/alpha-omega
+# Clone this repository
+git clone https://github.com/yourusername/alpha-omega.git
+
+# Navigate to the project directory
+cd alpha-omega
 
 # Start a local development server
 python3 -m http.server
