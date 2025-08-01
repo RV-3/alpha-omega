@@ -10,7 +10,7 @@ Serve the site locally using Python's built-in HTTP server and open `index.html`
 python3 -m http.server
 ```
 
-The page loads `data/example.json` and highlights rows that have matching entries. Click a highlighted row to view additional information.
+The page loads `data/index.json` which lists available chapter/verse files. Choose a reference from the drop-down to load its table and entries.
 
 ## Quick Start (macOS)
 
@@ -55,3 +55,11 @@ Only basic formatting tags like `<b>` and `<i>` are allowed. If existing JSON
 files rely on stripped tags, remove or rewrite those elements in the JSON so the
 sanitized output matches your expectations. Reload `index.html` locally after
 each change to verify the rendered result.
+
+## Maintaining the Manifest
+
+All study data files live in the `data` directory. The `data/index.json`
+manifest lists the available chapters so the drop-down on the page can be
+populated. When you add a new JSON file, include an object in the manifest with
+its filename and a human‑readable title. The viewer will then offer it as a
+selectable reference.
