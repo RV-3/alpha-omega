@@ -1,5 +1,17 @@
 let references = [];
 
+function showError(msg) {
+  const el = document.getElementById('error-message');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+
+function clearError() {
+  const el = document.getElementById('error-message');
+  el.textContent = '';
+  el.classList.add('hidden');
+}
+
 function sortRefs(refs) {
   const parse = file => {
     const m = file.match(/^(.*?)-(\d+)-(\d+)\.json$/);
@@ -17,17 +29,20 @@ function sortRefs(refs) {
 }
 
 async function loadData(file) {
-  const response = await fetch(`data/${file}`);
-  const data = await response.json();
+  try {
+    const response = await fetch(`data/${file}`);
+    if (!response.ok) throw new Error('request failed');
+    const data = await response.json();
+    clearError();
 
-  document.getElementById('title').textContent = data.title;
-  document.getElementById('context').textContent = data.context;
-  document.getElementById('subtitle').textContent = data.subtitle;
-  document.getElementById('source').textContent = `Source: ${data.source}`;
+    document.getElementById('title').textContent = data.title;
+    document.getElementById('context').textContent = data.context;
+    document.getElementById('subtitle').textContent = data.subtitle;
+    document.getElementById('source').textContent = `Source: ${data.source}`;
 
   // Map of Greek word -> entry HTML
-  const entryMap = {};
-  data.entries.forEach(raw => {
+    const entryMap = {};
+    data.entries.forEach(raw => {
     // Sanitize the HTML snippet to remove potentially dangerous tags
     const safe = DOMPurify.sanitize(raw, {
       ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br']
@@ -43,9 +58,9 @@ async function loadData(file) {
   });
 
   // Build table
-  const table = document.getElementById('word-table');
-  table.innerHTML = '';
-  data.table.forEach((row, index) => {
+    const table = document.getElementById('word-table');
+    table.innerHTML = '';
+    data.table.forEach((row, index) => {
     const tr = document.createElement('tr');
     row.forEach((cell, ci) => {
       const el = index === 0 ? document.createElement('th') : document.createElement('td');
@@ -59,13 +74,22 @@ async function loadData(file) {
     table.appendChild(tr);
   });
 
-  document.querySelectorAll('tr.keyword').forEach(tr => {
-    tr.addEventListener('click', () => {
-      const word = tr.dataset.word;
-      const html = entryMap[word];
-      if (html) showEntry(html);
+    document.querySelectorAll('tr.keyword').forEach(tr => {
+      tr.addEventListener('click', () => {
+        const word = tr.dataset.word;
+        const html = entryMap[word];
+        if (html) showEntry(html);
+      });
     });
-  });
+  } catch (err) {
+    showError('Failed to load the selected reference.');
+    document.getElementById('word-table').innerHTML = '';
+    document.getElementById('title').textContent = '';
+    document.getElementById('context').textContent = '';
+    document.getElementById('subtitle').textContent = '';
+    document.getElementById('source').textContent = '';
+    highlightSelected('');
+  }
 }
 
 function showEntry(html) {
@@ -102,8 +126,16 @@ document.getElementById('prev-btn').addEventListener('click', () => changeRefere
 document.getElementById('next-btn').addEventListener('click', () => changeReference(1));
 
 async function init() {
-  const indexRes = await fetch('data/index.json');
-  const manifest = await indexRes.json();
+  let manifest;
+  try {
+    const indexRes = await fetch('data/index.json');
+    if (!indexRes.ok) throw new Error('request failed');
+    manifest = await indexRes.json();
+    clearError();
+  } catch (err) {
+    showError('Failed to load reference list.');
+    return;
+  }
 
   references = sortRefs(manifest.references);
 
