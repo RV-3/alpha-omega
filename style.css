@@ -12,6 +12,11 @@ body {
   display: none;
 }
 
+.error {
+  color: red;
+  margin: 0.5rem 0;
+}
+
 .context {
   font-style: italic;
   margin-bottom: 1rem;
