@@ -1,3 +1,21 @@
+let references = [];
+
+function sortRefs(refs) {
+  const parse = file => {
+    const m = file.match(/^(.*?)-(\d+)-(\d+)\.json$/);
+    if (!m) return [file, 0, 0];
+    return [m[1], parseInt(m[2], 10), parseInt(m[3], 10)];
+  };
+  return refs.slice().sort((a, b) => {
+    const [bookA, chA, vA] = parse(a.file);
+    const [bookB, chB, vB] = parse(b.file);
+    if (bookA < bookB) return -1;
+    if (bookA > bookB) return 1;
+    if (chA !== chB) return chA - chB;
+    return vA - vB;
+  });
+}
+
 async function loadData(file) {
   const response = await fetch(`data/${file}`);
   const data = await response.json();
@@ -61,12 +79,27 @@ document.getElementById('close-btn').addEventListener('click', () => {
   document.getElementById('overlay').classList.add('hidden');
 });
 
+function changeReference(offset) {
+  const select = document.getElementById('ref-select');
+  const idx = references.findIndex(r => r.file === select.value);
+  const nextIndex = idx + offset;
+  if (nextIndex >= 0 && nextIndex < references.length) {
+    select.value = references[nextIndex].file;
+    loadData(select.value);
+  }
+}
+
+document.getElementById('prev-btn').addEventListener('click', () => changeReference(-1));
+document.getElementById('next-btn').addEventListener('click', () => changeReference(1));
+
 async function init() {
   const indexRes = await fetch('data/index.json');
   const manifest = await indexRes.json();
 
+  references = sortRefs(manifest.references);
+
   const select = document.getElementById('ref-select');
-  manifest.references.forEach(ref => {
+  references.forEach(ref => {
     const option = document.createElement('option');
     option.value = ref.file;
     option.textContent = ref.title;
@@ -75,8 +108,8 @@ async function init() {
 
   select.addEventListener('change', () => loadData(select.value));
 
-  if (manifest.references.length > 0) {
-    select.value = manifest.references[0].file;
+  if (references.length > 0) {
+    select.value = references[0].file;
     loadData(select.value);
   }
 }
