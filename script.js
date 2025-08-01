@@ -1,5 +1,5 @@
-async function loadData() {
-  const response = await fetch('data/example.json');
+async function loadData(file) {
+  const response = await fetch(`data/${file}`);
   const data = await response.json();
 
   document.getElementById('title').textContent = data.title;
@@ -61,4 +61,24 @@ document.getElementById('close-btn').addEventListener('click', () => {
   document.getElementById('overlay').classList.add('hidden');
 });
 
-document.addEventListener('DOMContentLoaded', loadData);
+async function init() {
+  const indexRes = await fetch('data/index.json');
+  const manifest = await indexRes.json();
+
+  const select = document.getElementById('ref-select');
+  manifest.references.forEach(ref => {
+    const option = document.createElement('option');
+    option.value = ref.file;
+    option.textContent = ref.title;
+    select.appendChild(option);
+  });
+
+  select.addEventListener('change', () => loadData(select.value));
+
+  if (manifest.references.length > 0) {
+    select.value = manifest.references[0].file;
+    loadData(select.value);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
