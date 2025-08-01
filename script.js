@@ -79,12 +79,21 @@ document.getElementById('close-btn').addEventListener('click', () => {
   document.getElementById('overlay').classList.add('hidden');
 });
 
+function highlightSelected(file) {
+  document.querySelectorAll('#ref-list li').forEach(li => {
+    li.classList.toggle('selected', li.dataset.file === file);
+  });
+  const select = document.getElementById('ref-select');
+  select.value = file;
+}
+
 function changeReference(offset) {
   const select = document.getElementById('ref-select');
   const idx = references.findIndex(r => r.file === select.value);
   const nextIndex = idx + offset;
   if (nextIndex >= 0 && nextIndex < references.length) {
     select.value = references[nextIndex].file;
+    highlightSelected(select.value);
     loadData(select.value);
   }
 }
@@ -98,20 +107,36 @@ async function init() {
 
   references = sortRefs(manifest.references);
 
+  const list = document.getElementById('ref-list');
   const select = document.getElementById('ref-select');
+
   references.forEach(ref => {
+    const li = document.createElement('li');
+    li.textContent = ref.title;
+    li.dataset.file = ref.file;
+    li.addEventListener('click', () => {
+      highlightSelected(ref.file);
+      loadData(ref.file);
+    });
+    list.appendChild(li);
+
     const option = document.createElement('option');
     option.value = ref.file;
     option.textContent = ref.title;
     select.appendChild(option);
   });
 
-  select.addEventListener('change', () => loadData(select.value));
+  document.getElementById('search').addEventListener('input', e => {
+    const q = e.target.value.toLowerCase();
+    list.querySelectorAll('li').forEach(li => {
+      li.style.display = li.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+  });
 
-  if (references.length > 0) {
-    select.value = references[0].file;
+  select.addEventListener('change', () => {
+    highlightSelected(select.value);
     loadData(select.value);
-  }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', init);
