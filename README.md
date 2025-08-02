@@ -10,7 +10,7 @@ Serve the site locally using Python's built‑in HTTP server and open `index.htm
 python3 -m http.server
 ```
 
-All verse data is fetched at runtime from your Sanity dataset. Populate the CMS and set `SANITY_PROJECT_ID`, `SANITY_DATASET`, and `SANITY_API_VERSION` in `sanityClient.js` or export them in your environment before launching the server. With valid credentials the page lists available references; choose one to load its table and entries.
+All verse data is fetched at runtime from your Sanity dataset. Populate the CMS and set `SANITY_PROJECT_ID`, `SANITY_DATASET`, and `SANITY_API_VERSION` by editing `config.js` or generating that file from environment variables before launching the server. With valid credentials the page lists available references; choose one to load its table and entries.
 
 ## Quick Start (macOS)
 
@@ -26,10 +26,16 @@ git clone https://github.com/yourusername/alpha-omega.git
 # Navigate to the project directory
 cd alpha-omega
 
-# Provide your Sanity credentials (or edit sanityClient.js)
+# Provide your Sanity credentials (edit `config.js` or generate it from env vars)
 export SANITY_PROJECT_ID=your_project_id
 export SANITY_DATASET=production
 export SANITY_API_VERSION=2023-10-01
+
+cat <<EOF > config.js
+window.SANITY_PROJECT_ID = '${SANITY_PROJECT_ID}';
+window.SANITY_DATASET = '${SANITY_DATASET}';
+window.SANITY_API_VERSION = '${SANITY_API_VERSION}';
+EOF
 
 # Start a local development server
 python3 -m http.server
@@ -63,7 +69,7 @@ The viewer sanitizes entry snippets using [DOMPurify](https://github.com/cure53/
 1. Create a Sanity project and dataset. The [Sanity CLI](https://www.sanity.io/docs/getting-started) can initialize a new project.
 2. Define a `reference` schema with a `title` and auto‑generated `slug` and a `verse` schema that references a `reference` and holds the `context`, `subtitle`, `source`, `table`, and HTML `entries` for that passage. Example schema files and starter documents live in the `sanity` folder of this repo.
 3. Note your project ID, dataset name, and preferred API version.
-4. Set `SANITY_PROJECT_ID`, `SANITY_DATASET`, and `SANITY_API_VERSION` in `sanityClient.js` or supply them via environment variables before serving the site.
+4. Set `SANITY_PROJECT_ID`, `SANITY_DATASET`, and `SANITY_API_VERSION` in `config.js` or generate that file from environment variables before serving the site.
 
 ## Serving and Hosting
 
