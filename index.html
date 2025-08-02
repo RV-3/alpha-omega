@@ -1,37 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Word Study Viewer</title>
+  <meta charset="utf-8" />
+  <title>Word-Study Viewer</title>
+
+  <!-- Sanity connection -->
+  <script>
+    window.SANITY_PROJECT_ID  = "yxwgk345";
+    window.SANITY_DATASET     = "production";
+    window.SANITY_API_VERSION = "2023-10-01";
+  </script>
+
+  <!-- DOMPurify (no integrity attribute) -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.4/dist/purify.min.js"></script>
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <input id="search" type="text" placeholder="Search reference...">
-    <ul id="ref-list"></ul>
-    <label for="ref-select" class="hidden">Reference:</label>
-    <select id="ref-select" class="hidden"></select>
-    <button id="prev-btn">Previous</button>
-    <button id="next-btn">Next</button>
-    <p id="error-message" class="error hidden"></p>
-    <h1 id="title"></h1>
-    <p id="context" class="context"></p>
-    <h2 id="subtitle"></h2>
-    <table id="word-table"></table>
-    <p class="source" id="source"></p>
+
+  <!-- UI skeleton -->
+  <input id="search" placeholder="Search reference…"><br>
+  <span  id="ref-list"></span>
+  <select id="ref-select"></select>
+  <button id="prev-btn">Previous</button>
+  <button id="next-btn">Next</button>
+
+  <p class="hidden" id="error-message"></p>
+
+  <h2 id="title"></h2>
+  <p  id="context"></p>
+  <h3 id="subtitle"></h3>
+  <table id="word-table"></table>
+  <p  id="source"></p>
+
+  <!-- pop-up overlay -->
+  <div id="overlay" class="hidden">
+    <button id="close-btn">×</button>
+    <div id="entry-content"></div>
   </div>
 
-  <div id="overlay" class="overlay hidden">
-    <div class="popup">
-      <button id="close-btn">×</button>
-      <div id="entry-content"></div>
-    </div>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/2.4.0/purify.min.js" integrity="sha384-Tsl3d5pUAO7a13enIvSsL3O0/95nsthPJiPto5NtLuY8w3+LbZOpr3Fl2MNmrh1E" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <script src="config.js"></script>
-  <script type="module" src="sanityClient.js"></script>
-  <script type="module" src="script.js"></script>
+  <!-- modules (cache-buster v=11) -->
+  <script type="module" src="sanityClient.js?v=11"></script>
+  <script type="module" src="script.js?v=11"></script>
 </body>
 </html>

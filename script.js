@@ -2,173 +2,176 @@ import { fetchReferenceList, fetchReferenceData } from "./sanityClient.js";
 
 let references = [];
 
-function showError(msg) {
-  const el = document.getElementById('error-message');
-  el.textContent = msg;
-  el.classList.remove('hidden');
+/* ───────── helpers ───────── */
+const $ = id => document.getElementById(id);
+const showError  = msg => { const e=$('error-message'); e.textContent=msg; e.classList.remove('hidden'); };
+const clearError = ()  => { const e=$('error-message'); e.textContent='';  e.classList.add   ('hidden'); };
+function highlight(file){
+  document.querySelectorAll('#ref-list li')
+    .forEach(li => li.classList.toggle('selected', li.dataset.file===file));
+  $('ref-select').value = file;
 }
 
-function clearError() {
-  const el = document.getElementById('error-message');
-  el.textContent = '';
-  el.classList.add('hidden');
+/* ───────── one‑time CSS for the modal ───────── */
+function injectModalCSS(){
+  if (document.getElementById('modal-css')) return;
+  const css = `
+    .hidden{display:none!important;}
+
+    /* backdrop */
+    #overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.45);
+      display:flex;align-items:flex-start;justify-content:center;
+      padding:4rem 1rem;z-index:1000;overflow:auto;
+    }
+
+    /* card */
+    .modal-card{
+      position:relative;max-width:42rem;width:100%;
+      background:#fff;color:#000;border-radius:.5rem;
+      padding:2.5rem 2rem 2rem;box-shadow:0 4px 16px rgba(0,0,0,.25);
+      line-height:1.45;font-family:Georgia,"Times New Roman",serif;
+    }
+
+    /* “×” button */
+    .modal-close{
+      position:absolute;top:.65rem;right:.65rem;
+      font-size:1.35rem;font-weight:bold;
+      border:none;background:transparent;cursor:pointer;color:#555;
+    }
+    .modal-close:hover{color:#000;}
+  `;
+  const style = document.createElement('style');
+  style.id = 'modal-css';
+  style.textContent = css;
+  document.head.appendChild(style);
 }
 
-function sortRefs(refs) {
-  const parse = file => {
-    const m = file.match(/^(.*?)-(\d+)-(\d+)(?:\.json)?$/);
-    if (!m) return [file, 0, 0];
-    return [m[1], parseInt(m[2], 10), parseInt(m[3], 10)];
+/* ───────── open & close modal ───────── */
+function openPopup(html){
+  injectModalCSS();
+
+  // build inner card (button + content)
+  const card = document.createElement('div');
+  card.className = 'modal-card';
+  card.innerHTML = `<button class="modal-close" aria-label="Close">×</button>${html}`;
+
+  // clear previous content & mount new card
+  const overlay = $('overlay');
+  overlay.innerHTML = '';               // remove old card
+  overlay.appendChild(card);
+  overlay.classList.remove('hidden');
+
+  // close handlers
+  card.querySelector('.modal-close').onclick =
+    () => overlay.classList.add('hidden');
+
+  document.onkeydown = e=>{
+    if(e.key==='Escape') overlay.classList.add('hidden');
   };
-  return refs.slice().sort((a, b) => {
-    const [bookA, chA, vA] = parse(a.file);
-    const [bookB, chB, vB] = parse(b.file);
-    if (bookA < bookB) return -1;
-    if (bookA > bookB) return 1;
-    if (chA !== chB) return chA - chB;
-    return vA - vB;
+}
+
+/* ───────── sort helper ───────── */
+function sortRefs(refs){
+  const parse = f => { const m=f.match(/^(.*?)-(\d+)-(\d+)/); return m?[m[1],+m[2],+m[3]]:[f,0,0]; };
+  return refs.slice().sort((a,b)=>{
+    const [ba,ca,va]=parse(a.file), [bb,cb,vb]=parse(b.file);
+    return ba!==bb?ba.localeCompare(bb):ca!==cb?ca-cb:va-vb;
   });
 }
 
-async function loadData(file) {
-  try {
+/* ───────── load a sheet ───────── */
+async function loadData(file){
+  try{
     const data = await fetchReferenceData(file);
     clearError();
 
-    document.getElementById('title').textContent = data.title;
-    document.getElementById('context').textContent = data.context;
-    document.getElementById('subtitle').textContent = data.subtitle;
-    document.getElementById('source').textContent = `Source: ${data.source}`;
+    $('title').textContent    = data.title    || '';
+    $('context').textContent  = data.context  || '';
+    $('subtitle').textContent = data.subtitle || '';
+    $('source').textContent   = data.source   ? `Source: ${data.source}` : '';
 
-  // Map of Greek word -> entry HTML
-  const entryMap = {};
-  data.entries.forEach(raw => {
-    // Replace newlines with <br> for display and sanitize the result
-    const withBreaks = raw.replace(/\n/g, '<br>');
-    const safe = DOMPurify.sanitize(withBreaks, {
-      ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br']
+    /* map <b>Greek</b> → snippet */
+    const entryMap = {};
+    (data.entries||[]).forEach(raw=>{
+      const safe = DOMPurify.sanitize(raw.replace(/\n/g,'<br>'),
+                   {ALLOWED_TAGS:['b','i','em','strong','u','br']});
+      const div  = document.createElement('div'); div.innerHTML = safe;
+      const key  = div.querySelector('b')?.textContent.trim();
+      if(key) entryMap[key] = div.innerHTML;
     });
 
-    const div = document.createElement('div');
-    div.innerHTML = safe;
-    const bold = div.querySelector('b');
-    if (bold) {
-      const key = bold.textContent.trim();
-      entryMap[key] = div.innerHTML; // store the sanitized snippet
-    }
-  });
-
-  // Build table
-    const table = document.getElementById('word-table');
-    table.innerHTML = '';
-    data.table.forEach((row, index) => {
-    const tr = document.createElement('tr');
-    row.forEach((cell, ci) => {
-      const el = index === 0 ? document.createElement('th') : document.createElement('td');
-      el.textContent = cell;
-      tr.appendChild(el);
-    });
-    if (index > 0 && entryMap[row[0]]) {
-      tr.classList.add('keyword');
-      tr.dataset.word = row[0];
-    }
-    table.appendChild(tr);
-  });
-
-    document.querySelectorAll('tr.keyword').forEach(tr => {
-      tr.addEventListener('click', () => {
-        const word = tr.dataset.word;
-        const html = entryMap[word];
-        if (html) showEntry(html);
+    /* build table */
+    const table = $('word-table'); table.innerHTML='';
+    (data.table||[]).forEach((row,idx)=>{
+      const tr = document.createElement('tr');
+      row.forEach(cell=>{
+        const el=document.createElement(idx?'td':'th');
+        el.textContent=cell; tr.appendChild(el);
       });
+      if(idx && entryMap[row[0]]){
+        tr.classList.add('keyword'); tr.dataset.word=row[0];
+      }
+      table.appendChild(tr);
     });
-  } catch (err) {
+
+    /* click → pop-up */
+    document.querySelectorAll('tr.keyword').forEach(tr=>{
+      tr.onclick = () => openPopup(entryMap[tr.dataset.word]);
+    });
+
+  }catch(err){
+    console.error(err);
     showError('Unable to contact content service.');
-    document.getElementById('word-table').innerHTML = '';
-    document.getElementById('title').textContent = '';
-    document.getElementById('context').textContent = '';
-    document.getElementById('subtitle').textContent = '';
-    document.getElementById('source').textContent = '';
-    highlightSelected('');
+    ['word-table','title','context','subtitle','source']
+      .forEach(id=>$(id).innerHTML='');
+    highlight('');
   }
 }
 
-function showEntry(html) {
-  const overlay = document.getElementById('overlay');
-  const content = document.getElementById('entry-content');
-  content.innerHTML = html;
-  overlay.classList.remove('hidden');
-}
+/* ───────── init list ───────── */
+async function init(){
+  const list=$('ref-list'), select=$('ref-select');
 
-document.getElementById('close-btn').addEventListener('click', () => {
-  document.getElementById('overlay').classList.add('hidden');
-});
-
-function highlightSelected(file) {
-  document.querySelectorAll('#ref-list li').forEach(li => {
-    li.classList.toggle('selected', li.dataset.file === file);
-  });
-  const select = document.getElementById('ref-select');
-  select.value = file;
-}
-
-function changeReference(offset) {
-  const select = document.getElementById('ref-select');
-  const idx = references.findIndex(r => r.file === select.value);
-  const nextIndex = idx + offset;
-  if (nextIndex >= 0 && nextIndex < references.length) {
-    select.value = references[nextIndex].file;
-    highlightSelected(select.value);
-    loadData(select.value);
-  }
-}
-
-document.getElementById('prev-btn').addEventListener('click', () => changeReference(-1));
-document.getElementById('next-btn').addEventListener('click', () => changeReference(1));
-
-async function init() {
-  const list = document.getElementById('ref-list');
-  const select = document.getElementById('ref-select');
-  let manifest;
-  try {
-    manifest = await fetchReferenceList();
-    clearError();
-  } catch (err) {
+  try{
+    const manifest = await fetchReferenceList(); clearError();
+    references = sortRefs(manifest.references);
+  }catch{
     showError('Unable to contact content service.');
-    list.innerHTML = '<li class="placeholder">No references available</li>';
-    select.innerHTML = '';
+    list.innerHTML='<li class="placeholder">No references available</li>';
     return;
   }
 
-  references = sortRefs(manifest.references);
-
-  references.forEach(ref => {
-    const li = document.createElement('li');
-    li.textContent = ref.title;
-    li.dataset.file = ref.file;
-    li.addEventListener('click', () => {
-      highlightSelected(ref.file);
-      loadData(ref.file);
-    });
+  references.forEach(ref=>{
+    const li=document.createElement('li');
+    li.textContent=ref.title; li.dataset.file=ref.file;
+    li.onclick = ()=>{ highlight(ref.file); loadData(ref.file); };
     list.appendChild(li);
 
-    const option = document.createElement('option');
-    option.value = ref.file;
-    option.textContent = ref.title;
-    select.appendChild(option);
+    const opt=document.createElement('option');
+    opt.value=ref.file; opt.textContent=ref.title; select.appendChild(opt);
   });
 
-  document.getElementById('search').addEventListener('input', e => {
-    const q = e.target.value.toLowerCase();
-    list.querySelectorAll('li').forEach(li => {
-      li.style.display = li.textContent.toLowerCase().includes(q) ? '' : 'none';
-    });
-  });
+  $('search').oninput = e=>{
+    const q=e.target.value.toLowerCase();
+    list.querySelectorAll('li')
+      .forEach(li=>li.style.display=li.textContent.toLowerCase().includes(q)?'':'none');
+  };
+  select.onchange = ()=>{ highlight(select.value); loadData(select.value); };
 
-  select.addEventListener('change', () => {
-    highlightSelected(select.value);
-    loadData(select.value);
-  });
+  if(references.length){ highlight(references[0].file); loadData(references[0].file); }
 }
 
+/* nav buttons */
+$('prev-btn').onclick = ()=>nav(-1);
+$('next-btn').onclick = ()=>nav(1);
+function nav(step){
+  const idx=references.findIndex(r=>r.file===$('ref-select').value);
+  const nxt=idx+step;
+  if(nxt>=0 && nxt<references.length){
+    highlight(references[nxt].file); loadData(references[nxt].file);
+  }
+}
+
+/* start */
 document.addEventListener('DOMContentLoaded', init);

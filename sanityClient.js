@@ -10,45 +10,42 @@ const BASE_URL =
 
 /* ───────── sidebar list ───────── */
 export async function fetchReferenceList() {
-  const query = `
-    *[_type=="wordStudyRaw"] | order(slug.current asc){
+  const query = `*[_type=="wordStudyRaw"]|order(slug.current asc){
       "file": slug.current,
-      "code": data.code
-    }
-  `;
+      "code": data.code         // raw JSON string
+  }`.trim();
+
   const url = `${BASE_URL}?query=${encodeURIComponent(query)}`;
+  const { result } = await (await fetch(url)).json();
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`request failed with status ${res.status}`);
-
-  const { result } = await res.json();
   const references = (result || []).map(r => {
-    const blob = JSON.parse(r.code || '{}');
-    return { file: r.file, title: blob.title || r.file };
+    let title;
+    try {
+      title = JSON.parse(r.code || '{}').title;
+    } catch (_) {
+      /* bad JSON in Code field – ignore */
+    }
+    /* fall back to a human-friendly slug */
+    if (!title) title = r.file.replace(/-/g, ' ').replace(/(\d+)-(\d+)$/, '$1:$2');
+    return { file: r.file, title };
   });
+
   return { references };
 }
 
 /* ───────── single sheet ───────── */
 export async function fetchReferenceData(slug) {
-  const query = `
-    *[_type=="wordStudyRaw" && slug.current == $slug][0]{
+  const query = `*[_type=="wordStudyRaw" && slug.current==$slug][0]{
       "code": data.code
-    }
-  `;
+  }`.trim();
 
-  /* JSON-encode the slug so it becomes "$slug=%22Matthew-3-14%22" */
-  const slugParam = encodeURIComponent(JSON.stringify(slug));
-  const url =
-    `${BASE_URL}?query=${encodeURIComponent(query)}&$slug=${slugParam}`;
+  const slugParam = encodeURIComponent(JSON.stringify(slug)); // "%22Matthew-3-14%22"
+  const url = `${BASE_URL}?query=${encodeURIComponent(query)}&$slug=${slugParam}`;
 
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`request failed with status ${res.status}`);
+  const { result } = await (await fetch(url)).json();
+  if (!result?.code) throw new Error('document not found');
 
-  const { result } = await res.json();
-  if (!result || !result.code) return null;
-
-  return JSON.parse(result.code);
+  return JSON.parse(result.code);          // {title, context, table, …}
 }
 
 export { SANITY_PROJECT_ID, SANITY_DATASET, SANITY_API_VERSION };
