@@ -14,7 +14,7 @@ export async function fetchReferenceList() {
 }
 
 export async function fetchReferenceData(slug) {
-  const query = '*[_type=="reference" && slug.current == $slug][0]{ title, context, subtitle, source, table, entries }';
+  const query = '*[_type=="verse" && reference->slug.current == $slug][0]{"title": reference->title, context, subtitle, source, table, entries }';
   const url = `${BASE_URL}?query=${encodeURIComponent(query)}&$slug=${encodeURIComponent(slug)}`;
   const res = await fetch(url);
   if (!res.ok) throw new Error('request failed');

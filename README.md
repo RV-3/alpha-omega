@@ -61,7 +61,7 @@ The viewer sanitizes entry snippets using [DOMPurify](https://github.com/cure53/
 ## Sanity Setup
 
 1. Create a Sanity project and dataset. The [Sanity CLI](https://www.sanity.io/docs/getting-started) can initialize a new project.
-2. Define a `reference` schema with a `slug` (used as the file name) and `title`. Include fields for `context`, `table`, and `entries` to store the passage content.
+2. Define a `reference` schema with a `title` and auto‑generated `slug` and a `verse` schema that references a `reference` and holds the `context`, `subtitle`, `source`, `table`, and HTML `entries` for that passage. Example schema files and starter documents live in the `sanity` folder of this repo.
 3. Note your project ID, dataset name, and preferred API version.
 4. Set `SANITY_PROJECT_ID`, `SANITY_DATASET`, and `SANITY_API_VERSION` in `sanityClient.js` or supply them via environment variables before serving the site.
 
