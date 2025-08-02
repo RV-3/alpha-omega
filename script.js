@@ -1,3 +1,5 @@
+import { fetchReferenceList, fetchReferenceData } from "./sanityClient.js";
+
 let references = [];
 
 function showError(msg) {
@@ -14,7 +16,7 @@ function clearError() {
 
 function sortRefs(refs) {
   const parse = file => {
-    const m = file.match(/^(.*?)-(\d+)-(\d+)\.json$/);
+    const m = file.match(/^(.*?)-(\d+)-(\d+)(?:\.json)?$/);
     if (!m) return [file, 0, 0];
     return [m[1], parseInt(m[2], 10), parseInt(m[3], 10)];
   };
@@ -30,9 +32,7 @@ function sortRefs(refs) {
 
 async function loadData(file) {
   try {
-    const response = await fetch(`data/${file}`);
-    if (!response.ok) throw new Error('request failed');
-    const data = await response.json();
+    const data = await fetchReferenceData(file);
     clearError();
 
     document.getElementById('title').textContent = data.title;
@@ -128,9 +128,7 @@ document.getElementById('next-btn').addEventListener('click', () => changeRefere
 async function init() {
   let manifest;
   try {
-    const indexRes = await fetch('data/index.json');
-    if (!indexRes.ok) throw new Error('request failed');
-    manifest = await indexRes.json();
+    manifest = await fetchReferenceList();
     clearError();
   } catch (err) {
     showError('Failed to load reference list.');
