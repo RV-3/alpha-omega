@@ -64,6 +64,10 @@ body {
   position: relative;
 }
 
+#entry-content {
+  white-space: pre-line;
+}
+
 #ref-list {
   list-style: none;
   padding: 0;
