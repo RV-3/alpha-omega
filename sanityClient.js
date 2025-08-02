@@ -1,6 +1,4 @@
-export const SANITY_PROJECT_ID = 'your_project_id';
-export const SANITY_DATASET = 'production';
-export const SANITY_API_VERSION = '2023-10-01';
+const { SANITY_PROJECT_ID, SANITY_DATASET, SANITY_API_VERSION } = window;
 
 const BASE_URL = `https://${SANITY_PROJECT_ID}.api.sanity.io/v${SANITY_API_VERSION}/data/query/${SANITY_DATASET}`;
 
@@ -21,3 +19,5 @@ export async function fetchReferenceData(slug) {
   const { result } = await res.json();
   return result;
 }
+
+export { SANITY_PROJECT_ID, SANITY_DATASET, SANITY_API_VERSION };
