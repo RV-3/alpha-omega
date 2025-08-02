@@ -82,7 +82,7 @@ async function loadData(file) {
       });
     });
   } catch (err) {
-    showError('Failed to load the selected reference.');
+    showError('Unable to contact content service.');
     document.getElementById('word-table').innerHTML = '';
     document.getElementById('title').textContent = '';
     document.getElementById('context').textContent = '';
@@ -126,19 +126,20 @@ document.getElementById('prev-btn').addEventListener('click', () => changeRefere
 document.getElementById('next-btn').addEventListener('click', () => changeReference(1));
 
 async function init() {
+  const list = document.getElementById('ref-list');
+  const select = document.getElementById('ref-select');
   let manifest;
   try {
     manifest = await fetchReferenceList();
     clearError();
   } catch (err) {
-    showError('Failed to load reference list.');
+    showError('Unable to contact content service.');
+    list.innerHTML = '<li class="placeholder">No references available</li>';
+    select.innerHTML = '';
     return;
   }
 
   references = sortRefs(manifest.references);
-
-  const list = document.getElementById('ref-list');
-  const select = document.getElementById('ref-select');
 
   references.forEach(ref => {
     const li = document.createElement('li');
