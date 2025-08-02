@@ -15,10 +15,12 @@
     "sanity"
   ],
   "dependencies": {
+    "@sanity/code-input": "^5.2.0",
     "@sanity/vision": "^4.2.0",
     "react": "^19.1",
     "react-dom": "^19.1",
     "sanity": "^4.2.0",
+    "sanity-plugin-json-input": "^0.1.0",
     "styled-components": "^6.1.18"
   },
   "devDependencies": {
