@@ -41,10 +41,11 @@ async function loadData(file) {
     document.getElementById('source').textContent = `Source: ${data.source}`;
 
   // Map of Greek word -> entry HTML
-    const entryMap = {};
-    data.entries.forEach(raw => {
-    // Sanitize the HTML snippet to remove potentially dangerous tags
-    const safe = DOMPurify.sanitize(raw, {
+  const entryMap = {};
+  data.entries.forEach(raw => {
+    // Replace newlines with <br> for display and sanitize the result
+    const withBreaks = raw.replace(/\n/g, '<br>');
+    const safe = DOMPurify.sanitize(withBreaks, {
       ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'u', 'br']
     });
 
